@@ -26,3 +26,19 @@ def test_get_book():
     assert response.status_code == 200
     assert response.json()["id"] == id_test
 
+def test_update_book():
+    data = {
+        "name": "updateBook",
+        "author": "George",
+        "edition": "1st"
+        }
+    response = requests.put(f"{BASE_URL}/books/{id_test}", json=data)
+
+    assert response.status_code == 200
+    assert "message" in response.json()
+
+def test_delete_book():
+    response = requests.delete(f"{BASE_URL}/books/{id_test}")
+
+    assert response.status_code == 200
+    assert "message" in response.json()
