@@ -49,7 +49,7 @@ def add_book():
 
         return jsonify({"message": "Cadastrado com sucesso"})
     else:
-        return jsonify(db_bad()), 500
+        return jsonify(db_bad_message()), 500
     
 
 @app.route("/books", methods=["GET"])
@@ -61,11 +61,17 @@ def get_books():
 
 @app.route("/books/<int:id>", methods=["GET"])
 def get_book(id):
-    pass
+    for book in books:
+        if book.get_id() == id:
+            return jsonify(book.to_dict())
+    return jsonify(not_found_message()), 404
 
-def db_bad():
+
+def db_bad_message():
     return {"message": "Data Base is bad!"}
 
+def not_found_message():
+    return {"message": "Not Found"}
 
 def save_books_db():
     with open(db_file, "w") as file:
