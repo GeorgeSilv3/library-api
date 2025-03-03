@@ -13,8 +13,7 @@ def load_books():
             for line in file.readlines():
                 book = line.split(";")
                 book = Book(id=int(book[0]), name=book[1], author=book[2], edition=book[3].replace("\n",""))
-                print(book.get_edition())
-                books.append(book.to_dict())
+                books.append(book)
             
         last_id = verify_last_id()
     except FileNotFoundError:
@@ -30,7 +29,7 @@ def load_books():
 
 def verify_last_id():
     last_book = books[-1]
-    return last_book["id"]
+    return last_book.get_id()
 
 
 @app.route("/books", methods=["POST"])
@@ -44,7 +43,7 @@ def add_book():
         
         last_id += 1
 
-        books.append(book.to_dict())
+        books.append(book)
 
         save_books_db()
 
@@ -55,8 +54,14 @@ def add_book():
 
 @app.route("/books", methods=["GET"])
 def get_books():
-    return jsonify({"books": books, "books_quantity": len(books)})
-    
+    list_all_books = [book.to_dict() for book in books]
+    print(list_all_books)
+    return jsonify({"books": list_all_books, "books_quantity": len(books)})
+
+
+@app.route("/books/<int:id>", methods=["GET"])
+def get_book(id):
+    pass
 
 def db_bad():
     return {"message": "Data Base is bad!"}
@@ -65,7 +70,7 @@ def db_bad():
 def save_books_db():
     with open(db_file, "w") as file:
             for book in books:
-                file.write(f"{book["id"]};{book["name"]};{book["author"]};{book["edition"]}\n")
+                file.write(f"{book.get_id()};{book.get_name()};{book.get_author()};{book.get_edition()}\n")
 
 
 load_books()
