@@ -4,14 +4,19 @@ from models.book import Book
 app = Flask(__name__)
 
 db_file = "src/db/books.csv"
+books = []
 
-def verify_last_id():
+def load_books():
+    global last_id
     try:
         with open(db_file, "r") as file:
-            last_line = file.readlines()[-1]
-            delimiter_index = last_line.find(";")
-            last_id = int(last_line[:delimiter_index])
-            print(last_id)
+            for line in file.readlines():
+                book = line.split(";")
+                book = Book(id=int(book[0]), name=book[1], author=book[2], edition=book[3].replace("\n",""))
+                print(book.get_edition())
+                books.append(book.to_dict())
+            
+        last_id = verify_last_id()
     except FileNotFoundError:
         print("File Not Found!")
         return -1
@@ -21,46 +26,49 @@ def verify_last_id():
     except Exception:
         print("Something Was Wrong.")
         return -1
-    else:
-        return last_id
+
+
+def verify_last_id():
+    last_book = books[-1]
+    return last_book["id"]
 
 
 @app.route("/books", methods=["POST"])
 def add_book():
-    book_id_controller = verify_last_id()+1
+    global last_id
+    book_id_controller = last_id+1
+    print(book_id_controller)
     if book_id_controller != 0:
         data = request.get_json()
         book = Book(id=book_id_controller, name=data.get("name"), author=data.get("author"), edition=data.get("edition", None))
-        book_id_controller += 1
+        
+        last_id += 1
 
-        with open(db_file, "a") as file:
-            file.write(f"\n{book.get_id()};{book.get_name()};{book.get_author()};{book.get_edition()}")
+        books.append(book.to_dict())
+
+        save_books_db()
 
         return jsonify({"message": "Cadastrado com sucesso"})
     else:
-        return jsonify(db_bad), 500
+        return jsonify(db_bad()), 500
     
 
 @app.route("/books", methods=["GET"])
 def get_books():
-    books = []
-    try:
-        with open(db_file, "r") as file:
-            for line in file.readlines():
-                book = line.split(";")
-                book = Book(id=int(book[0]), name=book[1], author=book[2], edition=book[3])
-        
-                books.append(book.to_dict())
-    except FileNotFoundError:
-        print("File not Found")
-        return jsonify(db_bad), 500
-
-    else:
-        return jsonify({"books": books, "books_quantity": len(books)})
+    return jsonify({"books": books, "books_quantity": len(books)})
     
 
 def db_bad():
     return {"message": "Data Base is bad!"}
+
+
+def save_books_db():
+    with open(db_file, "w") as file:
+            for book in books:
+                file.write(f"{book["id"]};{book["name"]};{book["author"]};{book["edition"]}\n")
+
+
+load_books()
 
 if __name__ == "__main__":
     app.run(debug=True)
