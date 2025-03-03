@@ -36,7 +36,6 @@ def verify_last_id():
 def add_book():
     global last_id
     book_id_controller = last_id+1
-    print(book_id_controller)
     if book_id_controller != 0:
         data = request.get_json()
         book = Book(id=book_id_controller, name=data.get("name"), author=data.get("author"), edition=data.get("edition", None))
@@ -47,7 +46,7 @@ def add_book():
 
         save_books_db()
 
-        return jsonify({"message": "Cadastrado com sucesso"})
+        return jsonify({"message": "Cadastrado com sucesso", "id": book.get_id()})
     else:
         return jsonify(db_bad_message()), 500
     
@@ -61,10 +60,24 @@ def get_books():
 
 @app.route("/books/<int:id>", methods=["GET"])
 def get_book(id):
+    book = search_book(id)
+    print(book)
+    if book != -1:
+        return jsonify(book.to_dict())
+    return jsonify(not_found_message()), 404
+
+
+@app.route("/books/<int:id>", methods=["PUT"])
+def update_book(id):
+    pass
+
+
+def search_book(id):
     for book in books:
         if book.get_id() == id:
-            return jsonify(book.to_dict())
-    return jsonify(not_found_message()), 404
+            return book
+        
+    return -1
 
 
 def db_bad_message():
