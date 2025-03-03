@@ -54,7 +54,6 @@ def add_book():
 @app.route("/books", methods=["GET"])
 def get_books():
     list_all_books = [book.to_dict() for book in books]
-    print(list_all_books)
     return jsonify({"books": list_all_books, "books_quantity": len(books)})
 
 
@@ -79,6 +78,17 @@ def update_book(id):
         return jsonify({"message": "Alterado com sucesso"})
     else:
         return jsonify(not_found_message()), 404
+
+
+@app.route("/books/<int:id>", methods=["DELETE"])
+def delete_book(id):
+    book = search_book(id)
+    if book != -1:
+        books.remove(book)
+        save_books_db()
+        return jsonify({"message": "Livro excluido com sucesso"})
+    else:
+        return jsonify(not_found_message()), 404 
 
 
 def search_book(id):
