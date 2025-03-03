@@ -38,7 +38,29 @@ def add_book():
 
         return jsonify({"message": "Cadastrado com sucesso"})
     else:
-        return jsonify({"message": "Data Base is bad!"}), 500
+        return jsonify(db_bad), 500
+    
+
+@app.route("/books", methods=["GET"])
+def get_books():
+    books = []
+    try:
+        with open(db_file, "r") as file:
+            for line in file.readlines():
+                book = line.split(";")
+                book = Book(id=int(book[0]), name=book[1], author=book[2], edition=book[3])
+        
+                books.append(book.to_dict())
+    except FileNotFoundError:
+        print("File not Found")
+        return jsonify(db_bad), 500
+
+    else:
+        return jsonify({"books": books, "books_quantity": len(books)})
+    
+
+def db_bad():
+    return {"message": "Data Base is bad!"}
 
 if __name__ == "__main__":
     app.run(debug=True)
