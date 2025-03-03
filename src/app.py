@@ -69,7 +69,16 @@ def get_book(id):
 
 @app.route("/books/<int:id>", methods=["PUT"])
 def update_book(id):
-    pass
+    data = request.get_json()
+    book = search_book(id)
+    if book != -1:
+        book.set_name(data["name"])
+        book.set_author(data.get("author"))
+        book.set_edition(data.get("edition"))
+        save_books_db()
+        return jsonify({"message": "Alterado com sucesso"})
+    else:
+        return jsonify(not_found_message()), 404
 
 
 def search_book(id):
